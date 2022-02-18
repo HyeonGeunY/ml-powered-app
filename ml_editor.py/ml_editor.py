@@ -9,6 +9,14 @@ from numpy import average
 import pyphen
 import nltk
 
+pyphen.language_fallback("en_US")
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+console_out = logging.StreamHandler(sys.stdout)
+console_out.setLevel(logging.DEBUG)
+logger.addHandler(console_out)
+
 def parse_arguments():
     """
     return : 수정할 텍스트
@@ -262,10 +270,19 @@ def get_suggestions(sentence_list):
 
 def get_recommendations_from_input(text):
     """
-    입력 문자열에 대해 
+    입력 문자열에 대해 정제, 전처리, 규칙 기반 추천 생성
+    Parameters
+    ----------
+    text : 입력 텍스트
+    
+    Return
+    ---------
+    주어진 텍스트 입력에 대한 추천
     """
-    pass
-
+    processed = clean_input(text)
+    tokenized_sentences = preprocess_input(processed)
+    suggestions = get_suggestions(tokenized_sentences)
+    return suggestions
 
 if __name__ == "__main__":
     input_text = parse_arguments()
