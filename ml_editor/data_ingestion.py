@@ -8,7 +8,8 @@ import xml.etree.ElementTree as ElT
 import pandas as pd
 import toml
 
-ROOT_DATA_DIRNAME = Path("/home/hyoon/Documents/ml-powered-application/data") 
+#ROOT_DATA_DIRNAME = Path("/home/hyoon/Documents/ml-powered-application/data")
+ROOT_DATA_DIRNAME = Path("D:/hyoon/side_project/ml-app/data")
 RAW_DATA_DIRNAME = ROOT_DATA_DIRNAME / "raw" / "writers" 
 METADATA_FILENAME = RAW_DATA_DIRNAME / "metadata.toml"
 DL_DATA_DIRNAME = ROOT_DATA_DIRNAME / "downloaded" / "writers"
@@ -86,7 +87,7 @@ def download_and_extract():
 
 
 if __name__ == "__main__":
-    #download_and_extract()
+    download_and_extract()
     parse_xml_to_csv(EXTRACTED_DATASET_DIRNAME / "xml" / "Posts.xml", PROCESSED_DIRNAME / "writers.csv")
     
 
