@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.model_selection import train_test_split, GroupShuffleSplit
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from scipy.sparse import vstack, hstack
 
 def format_raw_df(df):
     """
@@ -18,7 +19,7 @@ def format_raw_df(df):
 
     df["PostTypeId"] = df["PostTypeId"].astype(int)
     df["Id"] = df["Id"].astype(int)
-    df["AnswerCount"] = df["AnswerCount"].filna(-1)
+    df["AnswerCount"] = df["AnswerCount"].fillna(-1)
     df["AnwserCount"] = df["AnswerCount"].astype(int)
     df["OwnerUserId"].fillna(-1, inplace=True)
     df["OwnerUserId"] = df["OwnerUserId"].astype(int)
@@ -38,6 +39,86 @@ def format_raw_df(df):
     return df
 
 
+def train_vectorizer(df):
+    """
+    벡터화 객체를 훈련.
+    훈련 데이터와 그 외 데이터를 변환하는데 사용하 벡터화 객체 반환
+    
+    Args:
+        df (pd.DataFrame): 벡터화 객체를 훈련하는데 사용할 데이터
+    
+    Returns:
+        훈련된 벡터화 객체
+    """
+    vectorizer = TfidfVectorizer(
+        strip_accents="ascii", min_df=5, max_df=0.5, max_features=10000
+    )
+    
+    vectorizer.fit(df["full_text"].copy())
+    return vectorizer
+
+
+def get_vectorized_series(text_series, vectorizer):
+    """
+    사전 훈련된 벡터화 객체를 사용해 입력 시리즈를 벡터화
+
+    Args:
+        text_series (pd.DataFrame): 텍스트의 판다스 시리즈
+        vectorizer (sklearn object): 사전 훈련된 sklearn의 벡터화 객체
+        
+    Returns:
+        벡터화된 특성 배열
+    """
+    vectors = vectorizer.transform(text_series)
+    vectorized_series = [vectors[i] for i in range(vectors.shape[0])]
+    return vectorized_series
+
+
+def add_text_features_to_df(df):
+    """
+    DataFrame에 특성 추가
+
+    Args:
+        df (pd.DataFrame): DataFrame
+        
+    Return:
+        특성이 추가된 DataFrame
+    """
+    # 질문의 제목에 중요한 정보가 포함.
+    df["full_text"] = df["Title"].str.cat(df["body_text"], sep=" ", na_rep="")
+    # title과 body_text를 합쳐서 fulltext생성, 스페이스로 구분, null값은 공백으로 대체
+    df = add_v1_features(df.copy())
+    
+    return df
+
+def add_v1_features(df):
+    """
+    입력 DataFrame에 첫 번째 특성 추가.
+
+    Args:
+        df (pd.DataFrame): 질문 DataFrame
+        
+    Returns:
+        특성이 추가된 DataFrame
+    """
+    # 답변할 질문을 예측하기 좋은 action verb
+    df["action_verb_full"] = (df["full_text"].str.contains("can", regex=False)
+                              | df["full_text"].str.contains("What", regex=False)
+                              | df["full_text"].str.contains("should", regex=False)
+                              )
+    # 영어사용에 관련한 질문은 답변이 잘 오지 않음.
+    df["language_question"] = (
+        df["full_text"].str.contains("punctuate", regex=False)
+        | df["full_text"].str.contains("capitalize", regex=False)
+        | df["full_text"].str.contains("abbreviate", regex=False)
+    )
+    # 물음표가 있는지 확인
+    df["question_mark_full"] = df["full_text"].str.contains("?", regex=False)
+    # 매우 짧은 질문은 답을 받지 못하는 경향이 있음.
+    df["text_len"] = df["full_text"].str.len()
+    
+    return df
+    
 
 def get_normalized_series(df, col):
     return (df[col] - df[col].mean()) / df[col].std()
@@ -63,6 +144,6 @@ def get_split_by_author(
 
     splits = splitter.split(posts, groups=posts[author_id_column])
     train_idx, test_idx = next(splits)
-    return posts.iloc[train_idx, :], posts[test_idx, :]
+    return posts.iloc[train_idx, :], posts.iloc[test_idx, :]
 
 

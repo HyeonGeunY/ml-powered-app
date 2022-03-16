@@ -9,7 +9,7 @@ import pandas as pd
 import toml
 
 #ROOT_DATA_DIRNAME = Path("/home/hyoon/Documents/ml-powered-application/data")
-ROOT_DATA_DIRNAME = Path("D:/hyoon/side_project/ml-app/data")
+ROOT_DATA_DIRNAME = Path(__file__).resolve().parents[1] / "data"
 RAW_DATA_DIRNAME = ROOT_DATA_DIRNAME / "raw" / "writers" 
 METADATA_FILENAME = RAW_DATA_DIRNAME / "metadata.toml"
 DL_DATA_DIRNAME = ROOT_DATA_DIRNAME / "downloaded" / "writers"
