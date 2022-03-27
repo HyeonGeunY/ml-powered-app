@@ -26,7 +26,11 @@ from machine learning powered application
 
 ## 데이터 다운
 
-./data/raw/writers/metadata.toml 이용
+`./data/raw/writers/metadata.toml` 이용
 
-./ml_editor/data_ingestion.py 실행하면 다운로드.
+`./ml_editor/data_ingestion.py` 실행하면 다운로드.   
+=> ` /data/processed/writers/writers.csv` 에 저장
+
+7z 압축을 풀기 위해 py7zr 라이브러리 사용.
+다운로드 도중 연결이 끊기는 것을 대비하여 여러번 재접속 시도 코드 작성. (`./ml_editor/utils._download_url`)
 
