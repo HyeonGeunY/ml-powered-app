@@ -242,3 +242,45 @@ def get_feature_importance(clf, feature_names):
             importances[indices_sorted_by_importance],
         )
     )
+
+
+def get_top_k(df, proba_col, true_label_col, k=5, decision_threshold=0.5):
+    """이진 분류 문제를 위해 각 클래스 별로 가장 올바른 k개 샘플, 가장 잘못된 k개 샘플,
+    가장 불확실한 k개 샘플을 반환한다.
+
+    Args:
+        df (_type_): 예측과 진짜 레이블을 담고 이는 DataFrame
+        proba_col (_type_): 예측 확률의 열 이름
+        true_label_col (_type_): 정답 레이블의 열 이름
+        k (int, optional): 각 케이스 당 샘플의 개수. Defaults to 5.
+        decision_threshold (float, optional): 양성으로 분류하는 분류기 결정 경계. Defaults to 0.5.
+
+    Returns:
+        _type_: correct_pos, correct_neg, incorrect_pos, incorrect_neg, unsure
+    """
+    # 올바르게 예측한 데이터와 잘못 예측한 데이터를 나눈다.
+    correct = df[(df[proba_col] > decision_threshold) == df[true_label_col]].copy()
+    incorrect = df[(df[proba_col] > decision_threshold) != df[true_label_col]].copy()
+
+    # 올바르게 양성을 예측한 데이터 중 확률(proba_col)이 가장 높은(가장 큰 확신을 갖는) k개의 샘플을 추출한다.
+    top_correct_positive = correct[correct[true_label_col]].nlargest(k, proba_col)
+    # 올바르게 음성을 예측한 데이터 중 확률이 가장 낮은 확률(음성에 대한 가장 큰 확신을 갖는) k개의 샘플을 추출한다.
+    top_correct_negative = correct[~correct[true_label_col]].nsmallest(k, proba_col)
+
+    # 양성데이터를 음성이라고 예측한 데이터 중
+    # 가장 확률이 낮은(가장 음성이라고 확신한) 데이터를 추출한다.
+    top_incorrect_positive = incorrect[incorrect[true_label_col]].nsmallest(k, proba_col)
+    # 음성데이터를 양성이라고 예측한 데이터 중
+    # 가장 확률이 높은(가장 양성이라고 확신한) 데이터를 추출한다.
+    top_incorrect_negative = incorrect[~incorrect[true_label_col]].nlargest(k, proba_col)
+
+    # 결정 경계에 가장 가까운 샘플(가장 모호한)을 추출한다.
+    most_uncertain = df.iloc[(df[proba_col] - decision_threshold).abs().argsort()[:k]]
+
+    return (
+        top_correct_positive,
+        top_correct_negative,
+        top_incorrect_positive,
+        top_incorrect_negative,
+        most_uncertain,
+    )
