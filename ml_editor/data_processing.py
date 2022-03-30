@@ -42,7 +42,7 @@ def format_raw_df(df):
 
 def train_vectorizer(df):
     """
-    벡터화 객체를 훈련.
+    TfidVectorizer를 이용하여 벡터화 객체를 훈련.
     훈련 데이터와 그 외 데이터를 변환하는데 사용하 벡터화 객체 반환
 
     Args:
@@ -95,6 +95,11 @@ def add_v1_features(df):
     """
     입력 DataFrame에 첫 번째 특성 추가.
 
+    추가한 특성
+    - 질문 길이: 매우 짧은 질문은 대답을 받지 못하는 경향이 있는 것으로 보임.
+    - 물음표 여부: 물음표가 없으면 답변을 받을 가능성이 낮아 보임.
+    - 명확한 질문에 관련된 어휘(동작 동사 등...): 대답을 받지 못한 질문에는 빠져 있는 경우가 많이 보인다.
+
     Args:
         df (pd.DataFrame): 질문 DataFrame
 
@@ -127,7 +132,7 @@ def get_vectorized_inputs_and_label(df):
 
     Args:
         df (pd.DataFrame): 계산된 특성의 DataFrame
-    
+
     Returns:
         (pd.DataFrame): 트성과 텍스트로 구성된 벡터
     """
@@ -147,7 +152,7 @@ def get_vectorized_inputs_and_label(df):
 
     return vectorized_features, label
 
-    
+
 def get_normalized_series(df, col):
     """DataFrame 열을 정규화 한다.
 
@@ -191,3 +196,21 @@ def get_split_by_author(posts, author_id_column="OwnerUserId", test_size=0.3, ra
     splits = splitter.split(posts, groups=posts[author_id_column])
     train_idx, test_idx = next(splits)
     return posts.iloc[train_idx, :], posts.iloc[test_idx, :]
+
+
+def get_feature_vector_and_label(df, feature_names):
+    """벡터 특성과 다른 특성을 사용해 입력과 출력 벡터를 만든다.
+    출력 벡터는 질문의 점수가 median을 기준으로 높은지(True) 낮은지(False)이다.
+
+    Args:
+        df (pd.DataFrame): 입력 데이터프레임
+        feature_names (str): 'vectors'열을 제외한 특성 열 이름
+
+    Returns:
+        (np.array): 특성 배열과 레이블 배열
+    """
+    vec_features = vstack(df["vectors"])
+    num_features = df[feature_names].astype(float)
+    features = hstack([vec_features, num_features])
+    labels = df["Score"] > df["Score"].median()
+    return features, labels
