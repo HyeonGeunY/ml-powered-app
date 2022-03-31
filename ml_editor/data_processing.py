@@ -6,7 +6,7 @@ from scipy.sparse import vstack, hstack
 
 def format_raw_df(df):
     """
-    데이터를 정제하고 질문과 대답을 합침.
+    데이터를 정제하고 질문과 대답을 연결한다.
 
     Parameters
     ------------
@@ -29,7 +29,7 @@ def format_raw_df(df):
     df["is_question"] = df["PostTypeId"] == 1
 
     df = df[df["PostTypeId"].isin([1, 2])]
-
+    # ParentId: 답변 데이터의 경우 매칭되는 질문의 Id
     df = df.join(
         df[["Id", "Title", "body_text", "Score", "AcceptedAnswerId"]],
         on="ParentId",
