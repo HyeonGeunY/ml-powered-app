@@ -1,12 +1,15 @@
 import sys
 import os
+if '__file__' in globals():
+    import os, sys
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from pathlib import Path
 import pandas as pd
 
-# pytest를 적절히 임포트하기 위한 경로 추가
-myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, myPath + "/../")
+# # pytest를 적절히 임포트하기 위한 경로 추가
+# myPath = os.path.dirname(os.path.abspath(__file__))
+# sys.path.insert(0, myPath + "/../")
 
 from ml_editor.data_ingestion import parse_xml_to_csv
 

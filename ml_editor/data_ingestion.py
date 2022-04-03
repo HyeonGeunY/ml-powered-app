@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from utils import _download_raw_dataset, _extract_raw_dataset
+from .utils import _download_raw_dataset, _extract_raw_dataset
 
 from tqdm import tqdm
 from bs4 import BeautifulSoup
