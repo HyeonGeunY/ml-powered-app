@@ -8,6 +8,9 @@ import pandas as pd
 import nltk
 
 from ml_editor.explanation_generation import (
+    parse_explanations,
+    get_recommendation_string_from_parsed_exps,
+    EXPLAINER,
     FEATURE_ARR,
 )
 
@@ -83,3 +86,43 @@ def get_question_score_from_input(text):
     preds = get_model_probabilities_for_input_texts([text])
     positive_proba = preds[0][1]
     return positive_proba
+
+
+def get_recommendation_and_prediction_from_text(input_text, num_feats=10):
+    """
+    플래스크 앱에 출력할 점수와 추천을 구합니다.
+    
+    Args:
+        input_text: 입력 문자열
+        num_feats: 추천으로 제시한 특성 개수
+        
+    Return:
+        추천과 현재 점수
+    """
+    global MODEL
+    feats = get_features_from_input_text(input_text)
+
+    pos_score = MODEL.predict_proba([feats])[0][1]
+    print("설명")
+    exp = EXPLAINER.explain_instance(
+        feats, MODEL.predict_proba, num_features=num_feats, labels=(1,)
+    )
+    print("설명 끝")
+    parsed_exps = parse_explanations(exp.as_list())
+    recs = get_recommendation_string_from_parsed_exps(parsed_exps)
+    output_str = """
+    현재 점수 (0은 최악, 1은 최상):
+     <br/>
+     %s
+    <br/>
+    <br/>
+
+    추천 (중요도 순서):
+    <br/>
+    <br/>
+    %s
+    """ % (
+        pos_score,
+        recs,
+    )
+    return output_str

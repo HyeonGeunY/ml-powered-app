@@ -214,3 +214,26 @@ def get_question_score_from_input(text):
     preds = get_model_probabilities_for_input_texts([text])
     positive_proba = preds[0][1]
     return positive_proba
+
+
+def get_pos_score_from_text(input_text):
+    """
+    플래스크 앱에 출력할 점수를 구합니다.
+    
+    Args:
+        input_text: 입력 문자열
+    
+    Returns:
+        높은 점수를 받는 질문의 예측 확률
+    """
+    positive_proba = get_question_score_from_input(input_text)
+    output_str = (
+        """
+        질문 점수 (0는 최악, 1은 최상):
+        <br/>
+        %s
+    """
+        % positive_proba
+    )
+
+    return output_str

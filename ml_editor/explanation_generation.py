@@ -178,3 +178,28 @@ def parse_explanations(exp_list):
                 }
             )
     return parsed_exps
+
+
+def get_recommendation_string_from_parsed_exps(exp_list):
+    """
+    플래스크 앱에서 출력할 수 있는 추천 텍스트를 생성합니다.
+    :param exp_list: 설명을 담은 딕셔너리의 배열
+    :return: HTML 추천 텍스트
+    """
+    recommendations = []
+    for i, feature_exp in enumerate(exp_list):
+        recommendation = "%s %s" % (
+            feature_exp["recommendation"],
+            feature_exp["feature_display_name"],
+        )
+        font_color = "green"
+        if feature_exp["recommendation"] in ["Increase", "Decrease"]:
+            font_color = "red"
+        rec_str = """<font color="%s">%s) %s</font>""" % (
+            font_color,
+            i + 1,
+            recommendation,
+        )
+        recommendations.append(rec_str)
+    rec_string = "<br/>".join(recommendations)
+    return rec_string
